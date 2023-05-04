@@ -47,8 +47,8 @@ func main() {
 	}
 
 	log.Println("Adding commands...")
-	registeredCommands := make([]*discordgo.ApplicationCommand, len(cmds.Commands))
-	for i, v := range cmds.Commands {
+	registeredCommands := make([]*discordgo.ApplicationCommand, len(cmds.CommandInputs))
+	for i, v := range cmds.CommandInputs {
 		cmd, err := s.ApplicationCommandCreate(s.State.User.ID, *GuildID, v)
 		if err != nil {
 			log.Panicf("Cannot create '%v' command: %v", v.Name, err)
