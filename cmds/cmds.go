@@ -1,6 +1,8 @@
 package cmds
 
 import (
+	"fmt"
+
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -8,84 +10,49 @@ var (
 	integerOptionMinValue          = 1.0
 	dmPermission                   = false
 	defaultMemberPermissions int64 = discordgo.PermissionManageServer
-
-	CommandInputs = []*discordgo.ApplicationCommand{
+	CommandInputs                  = []*discordgo.ApplicationCommand{
 		{
 			Name:        "ping",
 			Description: "Command for verifying bot operation",
 		},
 		{
-			Name:        "subcommands",
-			Description: "Subcommands and command groups example",
+			Name:        "play-audio",
+			Description: "Command for playing audio",
 			Options: []*discordgo.ApplicationCommandOption{
-				// When a command has subcommands/subcommand groups
-				// It must not have top-level options, they aren't accesible in the UI
-				// in this case (at least not yet), so if a command has
-				// subcommands/subcommand any groups registering top-level options
-				// will cause the registration of the command to fail
-
 				{
-					Name:        "subcommand-group",
-					Description: "Subcommands group",
-					Options: []*discordgo.ApplicationCommandOption{
-						// Also, subcommand groups aren't capable of
-						// containing options, by the name of them, you can see
-						// they can only contain subcommands
-						{
-							Name:        "nested-subcommand",
-							Description: "Nested subcommand",
-							Type:        discordgo.ApplicationCommandOptionSubCommand,
-						},
-					},
-					Type: discordgo.ApplicationCommandOptionSubCommandGroup,
-				},
-				// Also, you can create both subcommand groups and subcommands
-				// in the command at the same time. But, there's some limits to
-				// nesting, count of subcommands (top level and nested) and options.
-				// Read the intro of slash-commands docs on Discord dev portal
-				// to get more information
-				{
-					Name:        "subcommand",
-					Description: "Top-level subcommand",
-					Type:        discordgo.ApplicationCommandOptionSubCommand,
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "audio-url",
+					Description: "Link to the audio you want to play",
+					Required:    true,
 				},
 			},
 		},
 	}
 
 	CommandHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
-		"basic-command": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+		"ping": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
 				Data: &discordgo.InteractionResponseData{
-					Content: "Hey there! Congratulations, you just executed your first slash command",
+					Content: "pong!",
 				},
 			})
 		},
-		"subcommands": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+		"play-audio": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			// Access options in the order provided by the user.
 			options := i.ApplicationCommandData().Options
-			content := ""
-
-			// As you can see, names of subcommands (nested, top-level)
-			// and subcommand groups are provided through the arguments.
-			switch options[0].Name {
-			case "subcommand":
-				content = "The top-level subcommand is executed. Now try to execute the nested one."
-			case "subcommand-group":
-				options = options[0].Options
-				switch options[0].Name {
-				case "nested-subcommand":
-					content = "Nice, now you know how to execute nested commands too"
-				default:
-					content = "Oops, something went wrong.\n" +
-						"Hol' up, you aren't supposed to see this message."
-				}
-			}
+			margs := make([]interface{}, 0, len(options))
+			msgformat := "You learned how to use command options! " +
+				"Take a look at the value(s) you entered:\n"
 
 			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				// Ignore type for now, they will be discussed in "responses"
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
 				Data: &discordgo.InteractionResponseData{
-					Content: content,
+					Content: fmt.Sprintf(
+						msgformat,
+						margs...,
+					),
 				},
 			})
 		},
